@@ -20,9 +20,9 @@ INSTRUCTIONS:
     - if no news are found, write a file about nothing being available for the given topic and search date.
 
 DELIVERABLE:
-    Create a file and output this to output/news-{topic} replace {topic} with the given topic name.
+    Create a file and temp this to temp/news-{topic} replace {topic} with the given topic name.
     Example:
-       topic = 'avocados from Mexico', then output/news-avocados-from-mexico.txt
+       topic = 'avocados from Mexico', then temp/news-avocados-from-mexico.txt
 
     File should contain the following structure per news found:
     - News title.
@@ -37,7 +37,7 @@ DELIVERABLE:
 OUTPUT:
     Return the path to the file.
     Example response:
-        Report has been successfully generated: output/news-avocados-from-mexico.txt
+        Report has been successfully generated: temp/news-avocados-from-mexico.txt
 """
 
 

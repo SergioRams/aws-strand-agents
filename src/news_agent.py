@@ -1,38 +1,25 @@
-import os
-
-from dotenv import load_dotenv
 from strands import Agent, tool
-from strands_tools import editor, file_read, file_write
+from strands_tools import file_read, file_write, use_aws
 from strands_tools.tavily import tavily_search
-
-# Load a TAVILY_API_KEY to get this agent up and running: https://app.tavily.com/home
-load_dotenv()
-TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
-
 
 NEWS_AGENT_SYSTEM_PROMPT = """
 You are a news collecting assistant, your capabilities include:
 
-NEWS COLLECTION:
-    - Collecting up to date news about a given topic by searching the web.
-    - Make HTTP requests to search for news.
-
-REPORT GENERATION:
-    - Capability to read files.
-    - Capability to write files.
-    - Capability to open files with an editor.
+HELPFUL TOOLS:
+    - Search: Collecting up to date news about a given topic by searching the web.
+    - File Read: Capability to read files.
+    - File Write: Capability to write files.
 
 INSTRUCTIONS:
     - You will be provided with a topic name.
     - Unless specified otherwise, news should be no more than 3 months old.
     - You will collect at least 1 news and maximum 5 if possible (default to basic mode search).
     - if no news are found, write a file about nothing being available for the given topic and search date.
-    - Do not ask for permission to write a file, overwrite if needed.
 
 DELIVERABLE:
-    Create a file and output it to output/news-{topic} replace {topic} with the given topic name.
+    Create a file and write it to /temp/news-<topic> replace <topic> with the given topic name.
     Example:
-       topic = 'avocados from Mexico', then output/news-avocados-from-mexico.txt
+       topic = 'avocados from Mexico', then /temp/news-avocados-from-mexico.txt
 
     The file should contain the following structure per news found:
     - News title.
@@ -42,12 +29,12 @@ DELIVERABLE:
     - News content.
     - Highlight summary of a couple of sentences.
 
-    If there is nothing available, write and empty file about nothing being available for the topic.
+    If there is nothing available, write an summary file about nothing being available for the topic at the moment.
 
 OUTPUT:
-    Return the path to the file.
+    Return the path to the news research file.
     Example:
-        The report has been generated successfully at output/news-avocados-from-mexico.txt
+        The news research file has been generated successfully at /temp/news-avocados-from-mexico.txt
 """
 
 
@@ -69,7 +56,7 @@ def news_assistant(query: str) -> str:
         print("Routed to News collecting assistant")
         news_agent = Agent(
             system_prompt=NEWS_AGENT_SYSTEM_PROMPT,
-            tools=[tavily_search, file_read, file_write, editor],
+            tools=[tavily_search, file_read, file_write, use_aws],
         )
         agent_response = news_agent(formatted_query)
         text_response = str(agent_response)

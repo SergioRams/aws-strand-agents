@@ -15,7 +15,8 @@ dependencies = [
     "graphviz (>=0.21,<0.22)",
     "matplotlib (>=3.10.7,<4.0.0)",
     "networkx (>=3.5,<4.0)",
-    "python-dotenv (>=1.2.1,<2.0.0)"
+    "python-dotenv (>=1.2.1,<2.0.0)",
+    "boto3 (>=1.41.4,<2.0.0)"
 ]
 
 

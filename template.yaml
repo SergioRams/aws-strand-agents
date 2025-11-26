@@ -1,0 +1,117 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: "Fully serverless agentic workflow leveraging Strands Agents SDK"
+
+Parameters:
+  Environment:
+    Type: String
+    Default: "dev"
+    AllowedValues: [dev, staging, prod]
+
+  BucketName:
+    Type: String
+    Default: "strands-agentic-data-store"
+    Description: "Base name for the S3 bucket"
+
+Globals:
+  Function:
+    Timeout: 600
+    MemorySize: 4096
+    Runtime: python3.12
+
+Resources:
+  # S3 Data Bucket
+  DataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${Environment}-${BucketName}"
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: "Serverless-Agentic-Workflow"
+
+  # Create placeholder objects for bucket prefixes
+  CreatePrefixesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      InlineCode: |
+        import boto3
+        import cfnresponse
+        def handler(event, context):
+            s3 = boto3.client('s3')
+            bucket = event['ResourceProperties']['BucketName']
+            try:
+                if event['RequestType'] in ['Create', 'Update']:
+                    s3.put_object(Bucket=bucket, Key='output/.keep', Body=b'')
+                    s3.put_object(Bucket=bucket, Key='audio/.keep', Body=b'')
+                cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+            except Exception as e:
+                cfnresponse.send(event, context, cfnresponse.FAILED, {'Error': str(e)})
+      Handler: index.handler
+      Runtime: python3.13
+      Timeout: 60
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Sub "${Environment}-${BucketName}"
+
+  CreatePrefixes:
+    Type: Custom::CreatePrefixes
+    Properties:
+      ServiceToken: !GetAtt CreatePrefixesFunction.Arn
+      BucketName: !Ref DataBucket
+
+  # Agent workflow lambda function
+  StrandAgentsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${Environment}-strand-workflow"
+      CodeUri: src/
+      Handler: lambda_function.lambda_handler
+      Description: "Orchestrates Strand Agents workflow."
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Sub "${Environment}-${BucketName}"
+        - S3WritePolicy:
+            BucketName: !Sub "${Environment}-${BucketName}"
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - polly:SynthesizeSpeech
+                - polly:DescribeVoices
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - translate:TranslateText
+                - translate:DescribeTextTranslationJob
+              Resource: "*"
+      Environment:
+        Variables:
+          S3_BUCKET: !Sub "${Environment}-${BucketName}"
+          TAVILY_API_KEY: "key"
+          BYPASS_TOOL_CONSENT: "True"
+
+Outputs:
+
+  # Storage
+  DataBucket:
+    Description: "S3 Bucket Name"
+    Value: !Ref DataBucket
+
+  # Lambda
+  StrandAgentsFunctionrn:
+    Description: "Workflow Lambda ARN"
+    Value: !GetAtt StrandAgentsFunction.Arn
