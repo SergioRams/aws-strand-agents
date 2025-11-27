@@ -1,2 +1,4 @@
 strands-agents>=1.18.0
 strands-agents-tools>=0.2.16
+pydub>=0.25.1
+ffmpeg-python>=0.2.0

@@ -3,7 +3,7 @@ from strands import tool
 
 
 @tool()
-def upload_file_to_s3(file_path: str, bucket_name: str, object_name: str):
+def upload_file_to_s3(file_path: str, bucket_name: str, object_name: str) -> bool:
     """
     Uploads a local audio file to an Amazon S3 bucket.
 
@@ -16,9 +16,10 @@ def upload_file_to_s3(file_path: str, bucket_name: str, object_name: str):
         object_name (str, optional): The desired S3 object key/path (e.g., 'output/audio-track.mp3').
 
     Returns:
-        str: A message indicating the outcome of the upload (success or failure details).
+        bool: A boolean indicating the outcome of the upload (success or failure details).
     """
     s3_client = boto3.client("s3")
+
     try:
         s3_client.upload_file(file_path, bucket_name, object_name)
         print(

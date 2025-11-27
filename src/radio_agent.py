@@ -11,7 +11,7 @@ S3_BUCKET = os.getenv("S3_BUCKET")
 
 
 RADIO_SYSTEM_PROMPT = f"""
-You are a radio station host, your capabilities include:
+You are a radio station host, bringing news from the 'Serverless Radio Station', your capabilities include:
 
 HELPFUL TOOLS:
     - File Read: Capability to read files.
@@ -23,7 +23,7 @@ HELPFUL TOOLS:
 INSTRUCTIONS:
     - You will be given a path to a script file(s) to generate audio for.
     - You will generate audio files with a radio station informative style and theme.
-    - Read the scrip as it is given to you, do not alter it unless told to do so.
+    - Read the scrip as it is given to you, but add the introduction from the 'Serverless Radio Station'.
     - Default language is english if no other language is specified.
     - Use the most natural sounding voices for the language.
     - Use 2 letter acronym as prefix for the generated file to indicate the language used.
