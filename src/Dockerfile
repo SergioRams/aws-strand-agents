@@ -17,7 +17,7 @@ RUN curl -L https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-stati
 COPY requirements.txt ${LAMBDA_TASK_ROOT}
 
 # Install Python dependencies
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir --root-user-action=ignore -r requirements.txt
 
 # Copy function code
 COPY . ${LAMBDA_TASK_ROOT}

@@ -11,7 +11,22 @@ aws s3 sync background_audio/ s3://dev-strands-agentic-data-store/audio/
 aws s3 sync video/ s3://dev-strands-agentic-data-store/video/
 ```
 
-```
+## Build and Deploy
+
+```bash
+# Set Docker host (if using Docker Desktop)
 export DOCKER_HOST="unix://$HOME/.docker/desktop/docker.sock"
+
+# Build (creates ECR repo automatically on first deploy)
 sam build
+
+# Deploy (use --guided first time to set up ECR repository)
+sam deploy --guided
+```
+
+## Clean up old Docker images
+
+```bash
+# Remove dangling images
+docker image prune -f
 ```

@@ -109,10 +109,12 @@ Resources:
     Metadata:
       Dockerfile: Dockerfile
       DockerContext: ./src
-      DockerTag: v1
+      DockerTag: !Sub "${Environment}-latest"
     Properties:
       FunctionName: !Sub "${Environment}-strand-worker"
       PackageType: Image
+      ImageConfig:
+        Command: ["worker.lambda_handler"]
       Description: "Orchestrates Strand Agents workflow in background."
       Timeout: 900
       MemorySize: 4096
