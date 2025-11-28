@@ -4,7 +4,7 @@ from strands import tool
 
 
 @tool()
-def combine_voice_with_background_music(
+def add_background_music_to_raw_audio(
     main_track_path, bg_music_path, output_path, bg_volume_reduction: int = 20
 ) -> str:
     """
@@ -14,7 +14,7 @@ def combine_voice_with_background_music(
         main_track_path (str): Path to the main audio voice file.
         bg_music_path (str): Path to the background music file.
         output_path (str): Path to save the combined audio file.
-        bg_volume_reduction (int): Decibels to reduce the background music volume. (20 seems like the sweet spot)
+        bg_volume_reduction (int): Decibels to reduce the background music volume. 20 seems like the sweet spot
 
     Returns:
         str: A message indicating the outcome of the upload (success or failure details).
@@ -23,7 +23,7 @@ def combine_voice_with_background_music(
         main_audio = AudioSegment.from_file(main_track_path)
         background_music = AudioSegment.from_file(bg_music_path)
 
-        # Ensure background music matches main audio length
+        # Ensure background that the music matches the main audio length
         if len(background_music) < len(main_audio):
             repeats = int(len(main_audio) / len(background_music)) + 1
             background_music = background_music * repeats
@@ -45,7 +45,7 @@ def combine_voice_with_background_music(
 
 
 @tool()
-def combine_video_audio(video_file: str, audio_file: str, output_file: str) -> str:
+def add_audio_to_video(video_file: str, audio_file: str, output_file: str) -> str:
     """
     Merges a video file and a longer audio file, looping the video to match the audio duration.
 

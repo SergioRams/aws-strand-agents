@@ -10,3 +10,8 @@ Upload audio to s3
 aws s3 sync background_audio/ s3://dev-strands-agentic-data-store/audio/
 aws s3 sync video/ s3://dev-strands-agentic-data-store/video/
 ```
+
+```
+export DOCKER_HOST="unix://$HOME/.docker/desktop/docker.sock"
+sam build
+```

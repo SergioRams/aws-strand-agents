@@ -4,6 +4,13 @@ __pycache__/
 *$py.class
 .aws-sam/
 samconfig.toml
+.env
+.venv
+venv/
+*.pyc
+
+# Ignore the locally built layer
+ffmpeg-layer/
 
 # C extensions
 *.so

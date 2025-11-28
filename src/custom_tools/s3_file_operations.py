@@ -32,3 +32,29 @@ def upload_file_to_s3(file_path: str, bucket_name: str, object_name: str) -> boo
     except Exception as e:
         print(f"An error occurred: {e}")
         return False
+
+
+@tool()
+def download_file_from_s3(bucket_name: str, object_name: str, file_path: str) -> bool:
+    """
+    Downloads a file from an Amazon S3 bucket to local storage.
+
+    Args:
+        bucket_name (str): The name of the S3 bucket (e.g., 'my-bucket').
+        object_name (str): The S3 object key/path (e.g., 'audio/background-music.mp3').
+        file_path (str): The local path where the file will be saved (e.g., '/tmp/downloaded.mp3').
+
+    Returns:
+        bool: True if download succeeds, False otherwise.
+    """
+    s3_client = boto3.client("s3")
+
+    try:
+        s3_client.download_file(bucket_name, object_name, file_path)
+        print(
+            f"File 's3://{bucket_name}/{object_name}' downloaded to '{file_path}' successfully."
+        )
+        return True
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return False

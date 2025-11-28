@@ -1,14 +1,23 @@
+import os
+
+from dotenv import load_dotenv
 from strands import Agent, tool
-from strands_tools import file_read, file_write, use_aws
+from strands_tools import current_time, file_read, file_write
 from strands_tools.tavily import tavily_search
 
-NEWS_AGENT_SYSTEM_PROMPT = """
+from custom_tools import s3_file_operations
+
+load_dotenv()
+S3_BUCKET = os.getenv("S3_BUCKET")
+
+NEWS_AGENT_SYSTEM_PROMPT = f"""
 You are a news collecting assistant, your capabilities include:
 
 HELPFUL TOOLS:
     - Search: Collecting up to date news about a given topic by searching the web.
     - File Read: Capability to read files.
     - File Write: Capability to write files.
+    - Use AWS: for general AWS operations.
 
 INSTRUCTIONS:
     - You will be provided with a topic name.
@@ -19,7 +28,12 @@ INSTRUCTIONS:
 DELIVERABLE:
     Create a file and write it to /temp/news-<topic> replace <topic> with the given topic name.
     Example:
-       topic = 'avocados from Mexico', then /temp/news-avocados-from-mexico.txt
+       topic = 'avocados from Mexico'
+        output = '/temp/news-avocados-from-mexico.txt'
+
+    Upload the same file to S3 as: {S3_BUCKET}/output/news-<topic>.txt
+    Example:
+        upload = '{S3_BUCKET}/output/news-avocados-from-mexico.txt'
 
     The file should contain the following structure per news found:
     - News title.
@@ -34,7 +48,8 @@ DELIVERABLE:
 OUTPUT:
     Return the path to the news research file.
     Example:
-        The news research file has been generated successfully at /temp/news-avocados-from-mexico.txt
+        The news research file has been generated successfully to /temp/news-avocados-from-mexico.txt and uploaded to
+         S3 '{S3_BUCKET}/output/news-avocados-from-mexico.txt'.
 """
 
 
@@ -56,7 +71,13 @@ def news_assistant(query: str) -> str:
         print("Routed to News collecting assistant")
         news_agent = Agent(
             system_prompt=NEWS_AGENT_SYSTEM_PROMPT,
-            tools=[tavily_search, file_read, file_write, use_aws],
+            tools=[
+                tavily_search,
+                file_read,
+                file_write,
+                current_time,
+                s3_file_operations,
+            ],
         )
         agent_response = news_agent(formatted_query)
         text_response = str(agent_response)

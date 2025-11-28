@@ -1,4 +1,3 @@
-import json
 import os
 
 from director_agent import director_agent
@@ -6,28 +5,25 @@ from director_agent import director_agent
 
 def lambda_handler(event, context):
     """
-    AWS Lambda entry point for Strand Agents workflow
+    Background Worker for Strand Agents.
+    Triggered asynchronously by API Handler.
+    Event comes from api_handler.py: {"prompt": "...", "job_id": "..."}
     """
-    try:
-        # Extract user query from event
-        user_prompt = event.get("prompt", "Generate a news report on current events")
+    user_prompt = event.get("prompt", "Generate a news report on current events")
+    job_id = event.get("job_id", "unknown-job")
+    s3_bucket = os.getenv("S3_BUCKET")
 
-        # Call the director agent with the user query
+    print(f"Starting Background Job {job_id} with prompt: {user_prompt}")
+
+    try:
+        # Call the director agent (This takes minutes)
         response = director_agent(user_prompt)
 
-        return {
-            "statusCode": 200,
-            "body": json.dumps(
-                {
-                    "message": "Workflow completed successfully",
-                    "response": str(response),
-                    "s3_bucket": os.getenv("S3_BUCKET"),
-                }
-            ),
-        }
+        print(f"Job {job_id} Completed Successfully.")
+        print(f"Agent Response: {response}")
+
+        return {"status": "success", "job_id": job_id, "bucket": s3_bucket}
 
     except Exception as e:
-        return {
-            "statusCode": 500,
-            "body": json.dumps({"error": str(e), "message": "Workflow failed"}),
-        }
+        print(f"Job {job_id} FAILED: {str(e)}")
+        raise e
