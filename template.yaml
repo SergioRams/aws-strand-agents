@@ -13,11 +13,14 @@ Parameters:
     Default: "strands-agentic-data-store"
     Description: "Base name for the S3 bucket"
 
+  TavilyApiKey:
+    Type: String
+    NoEcho: true
+    Description: "Tavily API Key for search functionality"
+
 Globals:
   Function:
-    Timeout: 600
-    MemorySize: 4096
-    Runtime: python3.12
+    Tracing: Active
 
 Resources:
   # S3 Data Bucket
@@ -52,6 +55,7 @@ Resources:
                 if event['RequestType'] in ['Create', 'Update']:
                     s3.put_object(Bucket=bucket, Key='output/.keep', Body=b'')
                     s3.put_object(Bucket=bucket, Key='audio/.keep', Body=b'')
+                    s3.put_object(Bucket=bucket, Key='video/.keep', Body=b'')
                 cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
             except Exception as e:
                 cfnresponse.send(event, context, cfnresponse.FAILED, {'Error': str(e)})
@@ -68,14 +72,53 @@ Resources:
       ServiceToken: !GetAtt CreatePrefixesFunction.Arn
       BucketName: !Ref DataBucket
 
-  # Agent workflow lambda function
-  StrandAgentsFunction:
+  # API Gateway
+  StrandAgentsApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Environment
+
+  # The API Handler
+  StrandApiFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Sub "${Environment}-strand-workflow"
+      FunctionName: !Sub "${Environment}-strand-api-handler"
       CodeUri: src/
-      Handler: lambda_function.lambda_handler
-      Description: "Orchestrates Strand Agents workflow."
+      Handler: api_handler.lambda_handler
+      Runtime: python3.12
+      Description: "API entry point that triggers the background worker."
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref StrandWorkerFunction
+      Environment:
+        Variables:
+          WORKER_FUNCTION_NAME: !Sub "${Environment}-strand-worker"
+          S3_BUCKET: !Sub "${Environment}-${BucketName}"
+      Events:
+        ApiGateway:
+          Type: Api
+          Properties:
+            Path: /workflow
+            Method: post
+            RestApiId: !Ref StrandAgentsApi
+
+  # The Lambda Worker (Docker image with ffmpeg)
+  StrandWorkerFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: ./src
+      DockerTag: !Sub "${Environment}-latest"
+    Properties:
+      FunctionName: !Sub "${Environment}-strand-worker"
+      PackageType: Image
+      ImageConfig:
+        Command: ["worker.lambda_handler"]
+      Description: "Orchestrates Strand Agents workflow in background."
+      Timeout: 900
+      MemorySize: 4096
       Policies:
         - S3ReadPolicy:
             BucketName: !Sub "${Environment}-${BucketName}"
@@ -101,8 +144,10 @@ Resources:
       Environment:
         Variables:
           S3_BUCKET: !Sub "${Environment}-${BucketName}"
-          TAVILY_API_KEY: "key"
+          TAVILY_API_KEY: !Ref TavilyApiKey
           BYPASS_TOOL_CONSENT: "True"
+          SPEAK_DEFAULT_MODE: "polly"
+
 
 Outputs:
 
@@ -112,6 +157,15 @@ Outputs:
     Value: !Ref DataBucket
 
   # Lambda
-  StrandAgentsFunctionrn:
-    Description: "Workflow Lambda ARN"
-    Value: !GetAtt StrandAgentsFunction.Arn
+  StrandWorkerFunctionName:
+    Description: "Worker Lambda Function Name"
+    Value: !Ref StrandWorkerFunction
+
+  StrandWorkerFunctionArn:
+    Description: "Worker Lambda ARN"
+    Value: !GetAtt StrandWorkerFunction.Arn
+
+  # API Gateway
+  StrandAgentsApiUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${StrandAgentsApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/workflow/"
