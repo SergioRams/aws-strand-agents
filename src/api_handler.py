@@ -11,7 +11,6 @@ BUCKET = os.getenv("S3_BUCKET")
 
 def lambda_handler(event, context):
     try:
-        # Parse body
         if "body" in event and isinstance(event["body"], str):
             body = json.loads(event["body"])
         else:
@@ -23,7 +22,7 @@ def lambda_handler(event, context):
         # Payload for the worker
         worker_payload = {"prompt": user_prompt, "job_id": job_id}
 
-        # Invoke Worker Lambda Asynchronously
+        # Invoke worker Lambda asynchronously (event)
         lambda_client.invoke(
             FunctionName=WORKER_FUNCTION_NAME,
             InvocationType="Event",
