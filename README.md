@@ -11,6 +11,13 @@ aws s3 sync background_audio/ s3://dev-strands-agentic-data-store/audio/
 aws s3 sync video/ s3://dev-strands-agentic-data-store/video/
 ```
 
+```
+{
+    "prompt": "Need to create a breaking news project on: Citrus fruits situation across the USA 2025, make it spanish and english"
+}
+```
+
+
 ## Build and Deploy
 
 ```bash
