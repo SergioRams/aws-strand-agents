@@ -5,7 +5,7 @@ from strands import tool
 
 @tool()
 def add_background_music_to_raw_audio(
-    main_track_path, bg_music_path, output_path, bg_volume_reduction: int = 20
+    main_track_path, bg_music_path, output_path, bg_volume_reduction: int = 25
 ) -> str:
     """
     Combines a main voice track with background music, ideal for adding background music to an audio clip.
@@ -14,7 +14,7 @@ def add_background_music_to_raw_audio(
         main_track_path (str): Path to the main audio voice file.
         bg_music_path (str): Path to the background music file.
         output_path (str): Path to save the combined audio file.
-        bg_volume_reduction (int): Decibels to reduce the background music volume. 20 seems like the sweet spot
+        bg_volume_reduction (int): Decibels to reduce the background music volume. 25 seems like the sweet spot
 
     Returns:
         str: A message indicating the outcome of the upload (success or failure details).
@@ -67,8 +67,11 @@ def add_audio_to_video(video_file: str, audio_file: str, output_file: str) -> st
             input_video["v:0"],
             input_audio["a:0"],
             output_file,
-            c="copy",
-            shortest=None,  # Use the flag to signify the shortest stream should govern duration
+            vcodec="libx264",
+            crf=23,
+            acodec="aac",
+            audio_bitrate="128k",
+            shortest=None,
         ).run(overwrite_output=True, quiet=True)
 
         return f"Successfully merged video and audio to {output_file}"

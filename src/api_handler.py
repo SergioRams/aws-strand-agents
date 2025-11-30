@@ -38,7 +38,7 @@ def lambda_handler(event, context):
                     "message": "Workflow started successfully",
                     "job_id": job_id,
                     "status": "processing",
-                    "info": f"Check the S3 bucket {BUCKET}output/ folder in about 5 minutes.",
+                    "info": f"Check the S3 bucket {BUCKET}/output/ folder in about 5 minutes.",
                 }
             ),
         }

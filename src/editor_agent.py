@@ -22,9 +22,9 @@ INSTRUCTIONS:
     1. You will be given paths to 2 files:
         - a script file script-<topic>.txt
         - an audio file <language>-raw-audio-<topic>.mp3
-    2. Identify the tone of the script file: positive, neutral or negative.
-    3. Get the corresponding audio file from S3 Bucket corresponding to the tone:
-        - s3://{S3_BUCKET}/audio/<tone>-background-audio.mp3
+    2. Identify the overall sentiment of the script content: positive, neutral or negative.
+    3. Get the corresponding audio file from S3 Bucket corresponding to the sentiment:
+        - s3://{S3_BUCKET}/audio/<sentiment>-background-audio.mp3
     4. Add background music to the input raw-audio .mp3 file.
     5. Create a video clip from the resulting new .mp3 audio file.
         - the video you need is in s3://{S3_BUCKET}/video/reporter_video.mp4
@@ -32,8 +32,8 @@ INSTRUCTIONS:
 DELIVERABLE:
     Create audio file locally and also upload them to S3 as follows:
 
-    Local output = /temp/<language>-<tone>-video-<topic>.mp4
-    Upload the file to S3 as: {S3_BUCKET}/output/<language>-<tone>-video-<topic>.mp4
+    Local output = /temp/<language>-<sentiment>-video-<topic>.mp4
+    Upload the file to S3 as: {S3_BUCKET}/output/<language>-<sentiment>-video-<topic>.mp4
 
     Example:
        input script name = 'script-avocados-from-mexico.txt'
@@ -54,7 +54,7 @@ def editor_assistant(script_filepath: str, raw_audio_filepath) -> str:
     Generates video from audio files by using a specialized video editing capability.
 
     Args:
-        script_filepath: a file path to the .txt script to review tone for: positive, negative, neutral.
+        script_filepath: a file path to the .txt script to review sentiment as: positive, negative, neutral.
         raw_audio_filepath: a file path to the .mp3 raw audio file to generate .mp4 video for.
 
     Returns:

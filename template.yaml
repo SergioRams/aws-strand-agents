@@ -95,6 +95,7 @@ Resources:
       Environment:
         Variables:
           WORKER_FUNCTION_NAME: !Sub "${Environment}-strand-worker"
+          S3_BUCKET: !Sub "${Environment}-${BucketName}"
       Events:
         ApiGateway:
           Type: Api
@@ -145,6 +146,7 @@ Resources:
           S3_BUCKET: !Sub "${Environment}-${BucketName}"
           TAVILY_API_KEY: !Ref TavilyApiKey
           BYPASS_TOOL_CONSENT: "True"
+          SPEAK_DEFAULT_MODE: "polly"
 
 
 Outputs:
